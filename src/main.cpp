@@ -57,15 +57,17 @@ void MyTestApp::setup(void)
 
     // without light we would just get a black screen    
 	scnMgr->setAmbientLight(Ogre::ColourValue(0.2, 0.2, 0.2));
-	//Ogre::Light* light = scnMgr->createLight("MainLight");
-	//Ogre::SceneNode* lightNode = scnMgr->getRootSceneNode()->createChildSceneNode();
-	//lightNode->setPosition(0, 10, 15);
+
+	// probably get rid of this...
+	Ogre::Light* light = scnMgr->createLight("MainLight");
+	Ogre::SceneNode* lightNode = scnMgr->getRootSceneNode()->createChildSceneNode();
+	lightNode->setPosition(0, 10, 7500);
 	//lightNode->attachObject(light);
 
     // also need to tell where we are
     Ogre::SceneNode* camNode = scnMgr->getRootSceneNode()->createChildSceneNode();
-    camNode->setPosition(0, 0, 15);
-    camNode->lookAt(Ogre::Vector3(0, 0, -1), Ogre::Node::TS_PARENT);
+    camNode->setPosition(0, 0, 2700);
+    camNode->lookAt(Ogre::Vector3(-10, 0, 0), Ogre::Node::TS_PARENT);
 
     // create the camera
     Ogre::Camera* cam = scnMgr->createCamera("myCam");
@@ -75,6 +77,12 @@ void MyTestApp::setup(void)
 
     // and tell it to render into the main window
     getRenderWindow()->addViewport(cam);
+
+	Ogre::ResourceGroupManager::getSingleton().addResourceLocation("/usr/share/OGRE/Media/414", "FileSystem");
+	Ogre::ResourceGroupManager::getSingleton().initialiseAllResourceGroups();
+	Ogre::Entity *e = scnMgr->createEntity("terrain", "tutorial.mesh");
+	Ogre::SceneNode *sn = scnMgr->getRootSceneNode()->createChildSceneNode("MySceneNode");
+	sn->attachObject(e);
 }
 //! [setup]
 
