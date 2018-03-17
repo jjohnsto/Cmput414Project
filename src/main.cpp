@@ -4,14 +4,18 @@
 class MyTestApp : public OgreBites::ApplicationContext, public OgreBites::InputListener
 {
 public:
-    MyTestApp();
+    MyTestApp(bool useBSP);
     void setup();
+	Ogre::SceneManager* create_scene();
     bool keyPressed(const OgreBites::KeyboardEvent& evt);
+private:
+	bool useBSP;
 };
 
 //! [constructor]
-MyTestApp::MyTestApp() : OgreBites::ApplicationContext("OgreTutorialApp")
+MyTestApp::MyTestApp(bool useBSP) : OgreBites::ApplicationContext("OgreTutorialApp")
 {
+	this->useBSP = useBSP;
 }
 //! [constructor]
 
@@ -37,17 +41,26 @@ void MyTestApp::setup(void)
 
     // get a pointer to the already created root
     Ogre::Root* root = getRoot();
-    Ogre::SceneManager* scnMgr = root->createSceneManager();
+	// ST_GENERIC is octree, ST_INTERIOR is BSP
+    Ogre::SceneManager* scnMgr = 0;
+	if(this->useBSP)
+	{
+	}
+	else
+	{
+    	scnMgr = root->createSceneManager("OctreeSceneManager");
+	}
 
     // register our scene with the RTSS
     Ogre::RTShader::ShaderGenerator* shadergen = Ogre::RTShader::ShaderGenerator::getSingletonPtr();
     shadergen->addSceneManager(scnMgr);
 
     // without light we would just get a black screen    
-    Ogre::Light* light = scnMgr->createLight("MainLight");
-    Ogre::SceneNode* lightNode = scnMgr->getRootSceneNode()->createChildSceneNode();
-    lightNode->setPosition(0, 10, 15);
-    lightNode->attachObject(light);
+	scnMgr->setAmbientLight(Ogre::ColourValue(0.2, 0.2, 0.2));
+	//Ogre::Light* light = scnMgr->createLight("MainLight");
+	//Ogre::SceneNode* lightNode = scnMgr->getRootSceneNode()->createChildSceneNode();
+	//lightNode->setPosition(0, 10, 15);
+	//lightNode->attachObject(light);
 
     // also need to tell where we are
     Ogre::SceneNode* camNode = scnMgr->getRootSceneNode()->createChildSceneNode();
@@ -62,18 +75,13 @@ void MyTestApp::setup(void)
 
     // and tell it to render into the main window
     getRenderWindow()->addViewport(cam);
-
-    // finally something to render
-    Ogre::Entity* ent = scnMgr->createEntity("Sinbad.mesh");
-    Ogre::SceneNode* node = scnMgr->getRootSceneNode()->createChildSceneNode();
-    node->attachObject(ent);
 }
 //! [setup]
 
 //! [main]
 int main(int argc, char *argv[])
 {
-    MyTestApp app;
+    MyTestApp app(false);
     app.initApp();
     app.getRoot()->startRendering();
     app.closeApp();
