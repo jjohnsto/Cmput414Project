@@ -33,6 +33,7 @@ bool MyTestApp::keyPressed(const OgreBites::KeyboardEvent& evt)
 //! [setup]
 void MyTestApp::setup(void)
 {
+	Ogre::ResourceGroupManager::getSingleton().addResourceLocation("/usr/share/OGRE/Media/414", "FileSystem");
     // do not forget to call the base first
     OgreBites::ApplicationContext::setup();
     
@@ -78,9 +79,7 @@ void MyTestApp::setup(void)
     // and tell it to render into the main window
     getRenderWindow()->addViewport(cam);
 
-	Ogre::ResourceGroupManager::getSingleton().addResourceLocation("/usr/share/OGRE/Media/414", "FileSystem");
-	Ogre::ResourceGroupManager::getSingleton().initialiseAllResourceGroups();
-	Ogre::Entity *e = scnMgr->createEntity("terrain", "tutorial.mesh");
+    Ogre::Entity *e = scnMgr->createEntity("terrain", "tutorial.mesh");
 	Ogre::SceneNode *sn = scnMgr->getRootSceneNode()->createChildSceneNode("MySceneNode");
 	sn->attachObject(e);
 }
