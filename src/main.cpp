@@ -67,7 +67,7 @@ void MyTestApp::setup(void)
 
     // also need to tell where we are
     Ogre::SceneNode* camNode = scnMgr->getRootSceneNode()->createChildSceneNode();
-    camNode->setPosition(0, 0, 2700);
+    camNode->setPosition(0, 10, 27);
     camNode->lookAt(Ogre::Vector3(-10, 0, 0), Ogre::Node::TS_PARENT);
 
     // create the camera
@@ -79,7 +79,7 @@ void MyTestApp::setup(void)
     // and tell it to render into the main window
     getRenderWindow()->addViewport(cam);
 
-    Ogre::Entity *e = scnMgr->createEntity("terrain", "tutorial.mesh");
+    Ogre::Entity *e = scnMgr->createEntity("terrain", "tutoriallevel.mesh");
 	Ogre::SceneNode *sn = scnMgr->getRootSceneNode()->createChildSceneNode("MySceneNode");
 	sn->attachObject(e);
 }
