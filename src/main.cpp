@@ -1,5 +1,10 @@
+#include <iostream>
+#include <string>
+
 #include <Ogre.h>
 #include <OgreApplicationContext.h>
+
+std::string usageText = "<appname> <-o or -d>\n-o is octree -d is default.\n";
 
 class MyTestApp : public OgreBites::ApplicationContext, public OgreBites::InputListener
 {
@@ -9,13 +14,13 @@ public:
 	Ogre::SceneManager* create_scene();
     bool keyPressed(const OgreBites::KeyboardEvent& evt);
 private:
-	bool useBSP;
+	bool useOctree; // enable Octree culling optimization
 };
 
 //! [constructor]
-MyTestApp::MyTestApp(bool useBSP) : OgreBites::ApplicationContext("OgreTutorialApp")
+MyTestApp::MyTestApp(bool useOctree) : OgreBites::ApplicationContext("OgreTutorialApp")
 {
-	this->useBSP = useBSP;
+	this->useOctree = useOctree;
 }
 //! [constructor]
 
@@ -44,12 +49,15 @@ void MyTestApp::setup(void)
     Ogre::Root* root = getRoot();
 	// ST_GENERIC is octree, ST_INTERIOR is BSP
     Ogre::SceneManager* scnMgr = 0;
-	if(this->useBSP)
+	if(this->useOctree)
 	{
+        std::cout << "Rendering using Octree Scene Manager.\n";
+    	scnMgr = root->createSceneManager("OctreeSceneManager");
 	}
 	else
 	{
-    	scnMgr = root->createSceneManager("OctreeSceneManager");
+        std::cout << "Rendering using Default Scene Manager.\n";
+    	scnMgr = root->createSceneManager("DefaultSceneManager");
 	}
 
     // register our scene with the RTSS
@@ -88,7 +96,30 @@ void MyTestApp::setup(void)
 //! [main]
 int main(int argc, char *argv[])
 {
-    MyTestApp app(false);
+    bool useOctree = false;
+    if(argc == 2)
+    {
+        if(strcmp(argv[1], "-o") == 0)
+        {
+            useOctree = true;
+        }
+        else if(strcmp(argv[1], "-d") == 0)
+        {
+            useOctree = false;
+        }
+        else
+        {
+            std::cout << "Scene manager selection not recognized.\n" << usageText;
+            std::cout << argv[1];
+            return -1;
+        }
+    }
+    else
+    {
+        std::cout << "Parameter format not recognized.\n" << usageText;
+        return -1;
+    }
+    MyTestApp app(useOctree);
     app.initApp();
     app.getRoot()->startRendering();
     app.closeApp();
