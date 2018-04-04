@@ -1,20 +1,30 @@
 #include <iostream>
 #include <string>
 
+
 #include <Ogre.h>
 #include <OgreApplicationContext.h>
+#include <OgreFrameListener.h>
+#include <OgreRenderTarget.h>
+#include <OgreProfiler.h>
 
 std::string usageText = "<appname> <-o or -d>\n-o is octree -d is default.\n";
 
-class MyTestApp : public OgreBites::ApplicationContext, public OgreBites::InputListener
+class MyTestApp : public OgreBites::ApplicationContext, public OgreBites::InputListener, Ogre::FrameListener
 {
 public:
     MyTestApp(bool useBSP);
     void setup();
 	Ogre::SceneManager* create_scene();
     bool keyPressed(const OgreBites::KeyboardEvent& evt);
+    bool frameEnded(const Ogre::FrameEvent& evt);
+    void printFrameRateInfo(char* prefix);
 private:
 	bool useOctree; // enable Octree culling optimization
+    Ogre::Camera* cam; 
+    Ogre::SceneNode *sn;
+    Ogre::Vector3 camMoveDelta;
+    int camTimesMoved;
 };
 
 //! [constructor]
@@ -29,11 +39,35 @@ bool MyTestApp::keyPressed(const OgreBites::KeyboardEvent& evt)
 {
     if (evt.keysym.sym == SDLK_ESCAPE)
     {
+        this->printFrameRateInfo("==FrameInfo==");
         getRoot()->queueEndRendering();
     }
     return true;
 }
 //! [key_handler]
+
+bool MyTestApp::frameEnded(const Ogre::FrameEvent& evt)
+{
+    this->cam->setAutoTracking(true,sn);
+    this->cam->setPosition(cam->getPosition() + camMoveDelta);
+
+    switch(this->camTimesMoved){
+        case 30:
+            this->camMoveDelta = Ogre::Vector3(0,0,-5);
+            break;
+        case 60:
+            this->camMoveDelta = Ogre::Vector3(-5,0,0);
+            break;
+        case 90:
+            this->camMoveDelta = Ogre::Vector3(0,0,5);
+            break;
+        case 120:
+            this->camMoveDelta = Ogre::Vector3(5,0,0);
+            this->camTimesMoved = 0;
+            break;
+    }
+    this->camTimesMoved++;
+}
 
 //! [setup]
 void MyTestApp::setup(void)
@@ -41,7 +75,7 @@ void MyTestApp::setup(void)
 	Ogre::ResourceGroupManager::getSingleton().addResourceLocation("/usr/share/OGRE/Media/414", "FileSystem");
     // do not forget to call the base first
     OgreBites::ApplicationContext::setup();
-    
+    this->camTimesMoved = 0;
     // register for input events
     addInputListener(this);
 
@@ -77,9 +111,9 @@ void MyTestApp::setup(void)
     Ogre::SceneNode* camNode = scnMgr->getRootSceneNode()->createChildSceneNode();
     camNode->setPosition(0, 10, 27);
     camNode->lookAt(Ogre::Vector3(-10, 0, 0), Ogre::Node::TS_PARENT);
-
+    camMoveDelta = Ogre::Vector3(0.1f,0,0);
     // create the camera
-    Ogre::Camera* cam = scnMgr->createCamera("myCam");
+    cam = scnMgr->createCamera("myCam");
     cam->setNearClipDistance(5); // specific to this sample
     cam->setAutoAspectRatio(true);
     camNode->attachObject(cam);
@@ -88,10 +122,20 @@ void MyTestApp::setup(void)
     getRenderWindow()->addViewport(cam);
 
     Ogre::Entity *e = scnMgr->createEntity("terrain", "tutoriallevel.mesh");
-	Ogre::SceneNode *sn = scnMgr->getRootSceneNode()->createChildSceneNode("MySceneNode");
+	sn = scnMgr->getRootSceneNode()->createChildSceneNode("MySceneNode");
+    cam->setAutoTracking(true,sn);
 	sn->attachObject(e);
 }
 //! [setup]
+void MyTestApp::printFrameRateInfo(char* prefix){
+    const Ogre::RenderTarget::FrameStats& stats = getRenderWindow()->getStatistics();
+    std::cout << prefix << "Average: " << stats.avgFPS << "\n";
+    std::cout << prefix << "Best FPS: " << stats.bestFPS << "\n";
+    std::cout << prefix << "Worst FPS: " << stats.worstFPS << "\n";
+    std::cout << prefix << "Best Frame Time: " << stats.bestFrameTime << " ms" << "\n";
+    std::cout << prefix << "Worst Frame Time: " << stats.worstFrameTime << " ms" << "\n";
+    
+}
 
 //! [main]
 int main(int argc, char *argv[])
