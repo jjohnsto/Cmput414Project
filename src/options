@@ -1,0 +1,5 @@
+numFrames=120
+rotationFrequency=30
+rotationConstant=5
+initialCameraPosition=75,350,-100
+meshFile=robot.mesh

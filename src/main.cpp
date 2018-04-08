@@ -14,7 +14,7 @@ std::string usageText = "<appname> <-o or -d>\n-o is octree -d is default.\n";
 class MyTestApp : public OgreBites::ApplicationContext, public OgreBites::InputListener, Ogre::FrameListener
 {
 public:
-    MyTestApp(bool useBSP,int runFrames,int rotationFrequency, float rotationConstant);
+    MyTestApp(bool useBSP,int runFrames,int rotationFrequency, float rotationConstant,Ogre::Vector3 initialCameraPosition,char* meshFile);
     void setup();
 	Ogre::SceneManager* create_scene();
     bool keyPressed(const OgreBites::KeyboardEvent& evt);
@@ -30,15 +30,19 @@ private:
     int runFrames;
     float rotationConstant;
     int rotationFrequency;
+    Ogre::Vector3 initialCameraPosition;
+    char* meshFile;
 };
 
 //! [constructor]
-MyTestApp::MyTestApp(bool useOctree,int runFrames,int rotationFrequency,float rotationConstant) : OgreBites::ApplicationContext("OgreTutorialApp")
+MyTestApp::MyTestApp(bool useOctree,int runFrames,int rotationFrequency,float rotationConstant,Ogre::Vector3 initialCameraPosition,char* meshFile) : OgreBites::ApplicationContext("OgreTutorialApp")
 {
 	this->useOctree = useOctree;
     this->runFrames = runFrames;
     this->rotationFrequency = rotationFrequency;
     this->rotationConstant = rotationConstant;
+    this->initialCameraPosition = initialCameraPosition;
+    this->meshFile = meshFile;
 }
 //! [constructor]
 
@@ -122,7 +126,11 @@ void MyTestApp::setup(void)
 
     // also need to tell where we are
     Ogre::SceneNode* camNode = scnMgr->getRootSceneNode()->createChildSceneNode();
-    camNode->setPosition(0, 10, 27);
+    //camNode->setPosition(0, 10, 27);
+    float x = this->initialCameraPosition.x;
+    float y = this->initialCameraPosition.y;
+    float z = this->initialCameraPosition.z;
+    camNode->setPosition(x,y,z);
     camNode->lookAt(Ogre::Vector3(-10, 0, 0), Ogre::Node::TS_PARENT);
     camMoveDelta = Ogre::Vector3(1,0,0) * this->rotationConstant;
     // create the camera
@@ -134,7 +142,7 @@ void MyTestApp::setup(void)
     // and tell it to render into the main window
     getRenderWindow()->addViewport(cam);
 
-    Ogre::Entity *e = scnMgr->createEntity("terrain", "tutoriallevel.mesh");
+    Ogre::Entity *e = scnMgr->createEntity("terrain",meshFile);
 	sn = scnMgr->getRootSceneNode()->createChildSceneNode("MySceneNode");
     cam->setAutoTracking(true,sn);
 	sn->attachObject(e);
@@ -156,18 +164,25 @@ int main(int argc, char *argv[])
     bool useOctree = false;
     FILE *options = fopen("./options","r");
     int runFrames,rotationFrequency;
-    float rotationConstant;
+    float rotationConstant,x,y,z;
+    char meshFile[256];
     if(options != NULL){
         fscanf(options,"numFrames=%i\n",&runFrames);
         fscanf(options,"rotationFrequency=%i\n",&rotationFrequency);
         fscanf(options,"rotationConstant=%f\n",&rotationConstant);
-        std::cout << "Options:\n" << runFrames <<" , " << rotationFrequency << " , " << rotationConstant << "\n";
+        fscanf(options,"initialCameraPosition=%f,%f,%f\n",&x,&y,&z);
+        fscanf(options,"meshFile=%s\n",&meshFile);
+        std::cout << "Options:" << runFrames <<" , " << rotationFrequency << " , " << rotationConstant << "," << meshFile <<"\n";
     }
     else{
         std::cout << "No options file. Using default values";
         runFrames = -1;
         rotationFrequency = 15;
         rotationConstant = 1;
+        x=0;
+        y=10;
+        z=27;
+        strcpy(meshFile,"tutoriallevel.mesh");
     }
     if(argc == 2)
     {
@@ -192,7 +207,7 @@ int main(int argc, char *argv[])
         return -1;
     }
     
-    MyTestApp app(useOctree,runFrames,rotationFrequency,rotationConstant);
+    MyTestApp app(useOctree,runFrames,rotationFrequency,rotationConstant,Ogre::Vector3(x,y,z),meshFile);
     app.initApp();
     app.getRoot()->startRendering();
     app.closeApp();
